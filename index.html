@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>บาคาร่า AI V.1</title>
+
+<style>
+body{
+  margin:0;
+  color:#e2e8f0;
+  font-family:sans-serif;
+  text-align:center;
+  overflow-x:hidden;
+
+  /* 🌌 Base Dark */
+  background:#020617;
+}
+
+/* 🌈 LAYER 1: Gradient ใหญ่ */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+
+  background:
+    radial-gradient(circle at 20% 30%, #3b82f6, transparent 40%),
+    radial-gradient(circle at 80% 70%, #a855f7, transparent 40%),
+    radial-gradient(circle at 50% 50%, #0f172a, #020617 80%);
+
+  background-size:200% 200%;
+  animation: bgMove 15s ease infinite;
+  z-index:-3;
+}
+
+/* ✨ LAYER 2: แสงหมอกลอย */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,0.06), transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,0.04), transparent 50%);
+
+  animation: fogMove 25s linear infinite;
+  z-index:-2;
+}
+
+/* 🌟 LAYER 3: ดาวระยิบ */
+.bg-stars{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+
+  background:
+    radial-gradient(white 1px, transparent 1px),
+    radial-gradient(white 1px, transparent 1px);
+
+  background-size:80px 80px, 120px 120px;
+  background-position:0 0, 40px 40px;
+
+  animation: starMove 60s linear infinite;
+}
+
+/* 🔥 LAYER 4: แสงวิ่ง */
+.bg-glow{
+  position:fixed;
+  width:200%;
+  height:200%;
+  top:-50%;
+  left:-50%;
+  z-index:-1;
+  pointer-events:none;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(59,130,246,0.15),
+      rgba(168,85,247,0.15),
+      rgba(59,130,246,0.15)
+    );
+
+  animation: rotateGlow 20s linear infinite;
+}
+
+/* 🌈 Animation ต่างๆ */
+@keyframes bgMove{
+  0%{ background-position:0% 50%; }
+  50%{ background-position:100% 50%; }
+  100%{ background-position:0% 50%; }
+}
+
+@keyframes fogMove{
+  0%{ transform:translate(0,0); }
+  100%{ transform:translate(100px,80px); }
+}
+
+@keyframes starMove{
+  0%{ background-position:0 0, 40px 40px; }
+  100%{ background-position:1000px 800px, 1040px 840px; }
+}
+
+@keyframes rotateGlow{
+  from{ transform:rotate(0deg); }
+  to{ transform:rotate(360deg); }
+}
+
+.container{max-width:900px;margin:auto;padding:10px;}
+
+.card{
+  background: rgba(30,41,59,0.65);
+  backdrop-filter: blur(12px);
+  border-radius:16px;
+  margin:10px;
+  padding:15px;
+
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.6),
+    inset 0 0 20px rgba(255,255,255,0.03);
+}
+
+/* BUTTON */
+button{
+  padding:10px 14px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  color:white;
+  font-weight:bold;
+
+  background: linear-gradient(135deg,#2563eb,#7c3aed);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+
+  transition: all 0.25s ease;
+}
+
+button:hover{
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    0 0 12px #3b82f6,
+    0 0 20px #9333ea;
+}
+
+button:active{
+  transform: scale(0.95);
+}
+
+/* BEAD ROAD */
+.bead{
+ display:grid;
+ grid-template-rows:repeat(6,20px);
+ grid-auto-flow:column;
+ gap:4px;
+ justify-content:center;
+}
+
+.cell{
+ width:20px;height:20px;border-radius:50%;
+}
+.P{
+  background:#3b82f6;
+  box-shadow:0 0 8px #3b82f6;
+}
+
+.B{
+  background:#ef4444;
+  box-shadow:0 0 8px #ef4444;
+}
+
+.T{
+  background:#22c55e;
+  box-shadow:0 0 8px #22c55e;
+}
+
+/* SIGNAL */
+.signal{
+ font-size:1.8rem;
+ padding:15px;
+ border-radius:10px;
+}
+.play{background:#22c55e;}
+.skip{background:#ef4444;}
+
+/* HISTORY */
+.history{
+ display:grid;
+ grid-template-columns:repeat(25,1fr);
+ gap:4px;
+}
+
+.hcell{height:18px;border-radius:4px;}
+.win{background:#22c55e;}
+.lose{background:#ef4444;}
+
+.small{font-size:12px;color:#94a3b8;}
+
+body::before{
+  content:"";
+  position:fixed;
+  width:200%;
+  height:200%;
+  top:-50%;
+  left:-50%;
+  background:
+    radial-gradient(circle, rgba(255,255,255,0.08) 2px, transparent 2px);
+  background-size:60px 60px;
+  animation: floatLight 25s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes floatLight{
+  0%{ transform:translate(0,0); }
+  100%{ transform:translate(60px,60px); }
+}
+
+#ai{
+  animation: pulseAI 2s infinite;
+}
+
+@keyframes pulseAI{
+  0%{ opacity:0.6; }
+  50%{ opacity:1; }
+  100%{ opacity:0.6; }
+}
+
+/* 🧠 กล่อง AI */
+.ai-card{
+  background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9));
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 0 25px rgba(59,130,246,0.2),
+    inset 0 0 15px rgba(255,255,255,0.05);
+}
+
+/* 🔥 ตัวแทงหลัก */
+.ai-text{
+  display:block;
+  font-size:2.8rem;
+  font-weight:900;
+  letter-spacing:2px;
+  margin-bottom:10px;
+
+  background: linear-gradient(90deg,#38bdf8,#818cf8,#c084fc);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+
+  text-shadow:
+    0 0 10px rgba(59,130,246,0.6),
+    0 0 20px rgba(147,51,234,0.4);
+
+  animation: aiGlow 2s ease-in-out infinite;
+}
+
+/* ✨ Animation เรืองแสง */
+@keyframes aiGlow{
+  0%{ transform:scale(1); filter:brightness(1); }
+  50%{ transform:scale(1.05); filter:brightness(1.3); }
+  100%{ transform:scale(1); filter:brightness(1); }
+}
+
+/* 🎯 ผลล่าสุด */
+.ai-result{
+  font-size:1.2rem;
+  font-weight:bold;
+  padding:4px 10px;
+  border-radius:8px;
+}
+.ai-result span{
+  font-weight:bold;
+  font-size:1.3rem;
+}
+
+.skip-anim{
+  font-size:2.5rem;
+  margin-top:10px;
+  display:none;
+}
+
+/* 💃 เต้น */
+.dance{
+  display:block;
+  animation: danceMove 0.6s infinite;
+}
+
+@keyframes danceMove{
+  0%{ transform: rotate(0deg) scale(1); }
+  25%{ transform: rotate(10deg) scale(1.1); }
+  50%{ transform: rotate(-10deg) scale(1.1); }
+  75%{ transform: rotate(10deg) scale(1.1); }
+  100%{ transform: rotate(0deg) scale(1); }
+}
+
+.skip-mode{
+  animation: skipFlash 1s infinite;
+}
+
+@keyframes skipFlash{
+  0%{ box-shadow:0 0 10px #ef4444; }
+  50%{ box-shadow:0 0 25px #ef4444; }
+  100%{ box-shadow:0 0 10px #ef4444; }
+}
+
+.login-page{
+  position:fixed;
+  inset:0;
+  background: radial-gradient(circle,#000,#020617 80%);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+
+.login-box{
+  background: rgba(0,0,0,0.85);
+  padding:30px;
+  border-radius:16px;
+  width:280px;
+
+  box-shadow:
+    0 0 40px rgba(0,0,0,1),
+    0 0 20px rgba(255,255,255,0.05) inset;
+
+  animation: fadeIn 0.8s ease;
+}
+
+.login-box h2{
+  color:#fff;
+  margin-bottom:15px;
+}
+
+.login-box input{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:none;
+  border-radius:8px;
+  background:#111;
+  color:#fff;
+}
+
+.login-box button{
+  width:100%;
+  margin-top:10px;
+}
+
+.show-pass{
+  font-size:12px;
+  color:#aaa;
+  text-align:left;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.show-pass input{
+  width:16px;
+  height:16px;
+  accent-color:#3b82f6; /* ทำให้ติ๊กเป็นสีน้ำเงิน */
+  cursor:pointer;
+}
+
+.login-msg{
+  margin-top:10px;
+  color:red;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:scale(0.9);}
+  to{opacity:1; transform:scale(1);}
+}
+
+.exp-text{
+  font-size: 13px;
+  color: #e91818;
+  opacity: 0.7;
+  letter-spacing: 0.5px;
+}
+
+.ai-player{
+  color:#3b82f6;
+  text-shadow:0 0 12px #3b82f6;
+}
+
+.ai-banker{
+  color:#ef4444;
+  text-shadow:0 0 12px #ef4444;
+}
+
+.ai-player{ animation: pulseBlue 1.5s infinite; }
+.ai-banker{ animation: pulseRed 1.5s infinite; }
+
+@keyframes pulseBlue{
+  0%{text-shadow:0 0 5px #3b82f6;}
+  50%{text-shadow:0 0 20px #3b82f6;}
+  100%{text-shadow:0 0 5px #3b82f6;}
+}
+
+@keyframes pulseRed{
+  0%{text-shadow:0 0 5px #ef4444;}
+  50%{text-shadow:0 0 20px #ef4444;}
+  100%{text-shadow:0 0 5px #ef4444;}
+}
+
+
+</style>
+</head>
+
+<body>
+<div class="bg-stars"></div>
+<div class="bg-glow"></div>
+
+  <div id="loginPage" class="login-page">
+  <div class="login-box">
+    <h2>🔐 LOGIN</h2>
+
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+
+    <div class="show-pass">
+      <input type="checkbox" onclick="togglePass()"> แสดงรหัสผ่าน
+    </div>
+
+    <button onclick="login()">เข้าสู่ระบบ</button>
+
+    <div id="loginMsg" class="login-msg"></div>
+  </div>
+</div>
+
+<div class="container">
+
+<h2> บอทบาคาร่า AI V.1</h2>
+
+<!-- INPUT -->
+<div class="card">
+<button onclick="add('P')">ผู้เล่น</button>
+<button onclick="add('B')">เจ้ามือ</button>
+<button onclick="add('T')">เสมอ</button>
+<button onclick="undo()">ย้อน</button>
+<button onclick="clearAll()">ล้าง</button>
+<br>
+📊 P: <span id="countP"></span> |
+B: <span id="countB"></span> |
+T: <span id="countT"></span> |
+Total: <span id="countAll"></span>
+</div>
+
+<!-- % -->
+<div class="card">
+<span id="percent"></span><br>
+  คำสั่งจริง: <span id="winrate"></span> |
+  AI คิด: <span id="aiRate"></span> |
+ความมั่นใจ: <span id="conf"></span> |
+
+
+ ⏳ หมดอายุ: <span id="exp" class="exp-text"></span>
+</div>
+
+<!-- BEAD -->
+<div class="card">
+  Bead
+<div id="bead" class="bead"></div>
+</div>
+
+<!-- AI -->
+<div class="card ai-card">
+  <span id="ai" class="ai-text"></span><br>
+  ผลล่าสุด: <span id="result" class="ai-result"></span>
+</div>
+
+<div id="skipAnim" class="skip-anim">💃</div>
+
+<!-- SIGNAL -->
+<div class="card">
+<div id="signal" class="signal skip">⛔ รอจังหวะ</div>
+</div>
+<div class="card">
+  <h3> AI ฉลาดตรวจ</h3>
+  <div id="debug"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="card">
+
+<div id="history" class="history"></div>
+<div class="small">ผล ถูก-ผิด</div>
+</div>
+
+</div>
+
+<script>
+let results=[];
+let history=[];
+let aiHistory = []; // 🔥 เก็บ AI คิด
+// 🧠 DEBUG SYSTEM (วางตรงนี้เท่านั้น)
+let debugLog = [];      // log ทุกตา
+let aiTrack = [];       // AI ที่แทง
+let realTrack = [];     // ผลจริง
+let compareTrack = [];  // เทียบ AI vs จริง
+let loss=0,skip=0;
+let skipCount = 0;
+let stateStack = []; // 🔥 ต้องมีอันนี้
+
+/* 🔥 วางตรงนี้ */
+let dnaMemory = {};
+let lastDNAKey = null; // 🔥 ใช้เช็คย้อนหลัง
+
+
+/* INPUT */
+function add(x){
+
+  // 🔥 SAVE STATE ก่อนเปลี่ยน
+  stateStack.push({
+    results: [...results],
+    history: JSON.parse(JSON.stringify(history)),
+    dnaMemory: JSON.parse(JSON.stringify(dnaMemory)),
+    lastDNAKey: lastDNAKey,
+    loss: loss,
+    skip: skip,
+    skipCount: skipCount
+  });
+
+  results.push(x);
+  check(x);
+  update();
+}
+
+function undo(){
+
+  if(stateStack.length === 0) return;
+
+  let prev = stateStack.pop();
+
+  results = prev.results;
+  history = prev.history;
+  dnaMemory = prev.dnaMemory;
+  lastDNAKey = prev.lastDNAKey;
+  loss = prev.loss;
+  skip = prev.skip;
+  skipCount = prev.skipCount;
+
+  // 🔥 ADD ตรงนี้
+  debugLog = prev.debugLog || [];
+  aiTrack = prev.aiTrack || [];
+  realTrack = prev.realTrack || [];
+  compareTrack = prev.compareTrack || [];
+  aiHistory = prev.aiHistory || [];
+
+  update();
+}
+
+function clearAll(){
+ results=[];
+ history=[];
+ loss=0;
+ skip=0;
+ skipCount = 0;
+ dnaMemory = {};
+ lastDNAKey = null;
+
+ // 🔥 ADD ตรงนี้
+ debugLog = [];
+ aiTrack = [];
+ realTrack = [];
+ compareTrack = [];
+ aiHistory = [];
+
+ stateStack = [];
+
+ update();
+}
+
+/* BEAD ROAD */
+function bead(){
+ let el=document.getElementById("bead");
+ el.innerHTML='';
+
+ let rows=6;
+ let cols=Math.ceil(results.length/rows);
+
+ for(let c=0;c<cols;c++){
+  for(let r=0;r<rows;r++){
+    let i=c*rows+r;
+    let v=results[i];
+
+    let d=document.createElement("div");
+    if(v) d.className="cell "+v;
+    el.appendChild(d);
+  }
+ }
+}
+
+/* % */
+function percent(){
+ let p=results.filter(x=>x=='P').length;
+ let b=results.filter(x=>x=='B').length;
+ let t=results.filter(x=>x=='T').length;
+
+ let total=p+b;
+ let pPct= total?(p/total*100).toFixed(0):0;
+ let bPct= total?(b/total*100).toFixed(0):0;
+
+ document.getElementById("percent").innerText=
+ `P ${pPct}% | B ${bPct}% | T ${t}`;
+
+  document.getElementById("countP").innerText = p;
+ document.getElementById("countB").innerText = b;
+ document.getElementById("countT").innerText = t;
+ document.getElementById("countAll").innerText = results.length;
+
+}
+
+/* ===== AI ===== */
+function streak(){
+ let c=1;
+ for(let i=results.length-1;i>0;i--){
+  if(results[i]==results[i-1]) c++;
+  else break;
+ }
+ return c;
+}
+
+/* 🔥 ===== วางตรงนี้เลย ===== */
+
+/* ===== DNA LEARN ===== */
+function learnDNA(){
+
+  let clean = results.filter(x=>x!='T');
+  if(clean.length < 6) return;
+
+  let key = clean.slice(-6, -1).join('');
+  let next = clean.at(-1);
+
+  if(!dnaMemory[key]){
+    dnaMemory[key] = {
+      P:0,
+      B:0,
+      win:0,
+      lose:0
+    };
+  }
+
+  // 🔥 เพิ่มจำนวน pattern
+  dnaMemory[key][next]++;
+
+  // 🔥 เก็บ key ล่าสุดไว้เช็คผล
+  lastDNAKey = key;
+
+  /* =========================
+     🔥 DECAY กัน bias (สำคัญ)
+     ========================= */
+if(results.length % 5 === 0){
+  Object.values(dnaMemory).forEach(d=>{
+    d.P *= 0.99;
+    d.B *= 0.99;
+  });
+}
+// ✅ ปิดตรงนี้ !!!
+}
+
+function updateDNAResult(real){
+
+  if(!lastDNAKey) return;
+  let data = dnaMemory[lastDNAKey];
+  if(!data) return;
+
+  let pred = data.P > data.B ? 'P' : 'B';
+
+  if(pred === real){
+    data.win++;
+  }else{
+    data.lose++;
+  }
+}
+
+
+
+/* ===== DNA AI ===== */
+function dnaAI(){
+
+ let clean = results.filter(x=>x!='T');
+
+ if(clean.length < 5) return null;
+
+ let key = clean.slice(-5).join('');
+
+ let data = dnaMemory[key];
+
+ if(!data) return null;
+
+ return data.P > data.B ? 'P' : 'B';
+}
+
+
+
+let strategies=[
+ {name:'ตามน้ำ', fn:r=>r.at(-1), w:1},
+ {name:'สวน', fn:r=>r.at(-1)=='P'?'B':'P', w:1},
+ {name:'ต่อไม้', fn:r=>streak()>=2?r.at(-1):'NA', w:1},
+ {name:'ตัด2', fn:r=>streak()==2?(r.at(-1)=='P'?'B':'P'):'NA', w:1}
+];
+
+/* LEARN */
+function learn(){
+ if(results.length<2) return;
+ let last=results.at(-1);
+
+ strategies.forEach(s=>{
+  let pred=s.fn(results.slice(0,-1));
+  if(pred=='NA') return;
+
+  if(pred==last) s.w+=0.2;
+  else{
+    s.w-=0.1;
+    if(s.w<0.1) s.w=0.1;
+  }
+ });
+}
+
+/* DECIDE */
+function decide(){
+
+ let score = {P:0, B:0};
+
+ let clean = results.filter(x=>x!='T');
+ if(clean.length < 4) return null;
+
+ let last = clean.at(-1);
+
+ /* ===== 🔥 LOCK 2-2 MODE ===== */
+let last8 = clean.slice(-8).join('');
+
+if(/(BBPPBBPP|PPBBPPBB)/.test(last8)){
+  return {
+    name:'LOCK 2-2',
+    bet: last=='P' ? 'B' : 'P',
+    score: 12
+  };
+}
+
+
+
+
+
+/* ===== 🔥 FAKE BREAK (กันโดนหลอก) ===== */
+let last5 = clean.slice(-5).join('');
+
+// เช่น BBPPB หรือ PPBBP (หลัง 2 แล้วออกเดี่ยว)
+if(/(BBPPB|PPBBP|PPBBP|BBPPB)/.test(last5)){
+  return {
+    name:'FAKE BREAK',
+    bet: 'SKIP', // 🔥 ข้ามทันที
+    score: 0
+  };
+}
+
+/* ===== 🔥 CUT AFTER 2 (ยิงตรงจุด) ===== */
+let last2 = clean.slice(-2).join('');
+
+if(last2 === 'PP' || last2 === 'BB'){
+  return {
+    name:'CUT AFTER 2',
+    bet: last=='P' ? 'B' : 'P',
+    score: 9
+  };
+}
+
+
+
+
+  // ===== 🔥 กันเสมอหลอก pattern =====
+ let last3raw = results.slice(-3);
+
+ if(last3raw.includes('T')){
+   score.P *= 0.8;
+   score.B *= 0.8;
+ }
+
+
+ /* ===== 1. TREND ===== */
+ let pCount = clean.filter(x=>x=='P').length;
+ let bCount = clean.filter(x=>x=='B').length;
+
+ if(pCount > bCount) score.P += 2;
+ if(bCount > pCount) score.B += 2;
+
+ /* 🔥 BIAS โต๊ะ */
+if(Math.abs(pCount - bCount) >= 3){
+  if(pCount > bCount) score.P += 2;
+  else score.B += 2;
+}
+
+ /* ===== 2. MOMENTUM ===== */
+ let last3 = clean.slice(-3);
+ last3.forEach((r,i)=>{
+   let w = i+1; // ตัวหลังหนักกว่า
+   if(r=='P') score.P += w;
+   if(r=='B') score.B += w;
+ });
+
+ /* ===== DOUBLE BREAK ===== */
+let last4 = clean.slice(-4).join('');
+
+// เช่น BPBB หรือ PBPP
+if(/BPBB|PBPP/.test(last4)){
+  if(last=='B') score.P += 3;
+  if(last=='P') score.B += 3;
+}
+
+/* ===== 3. CHOP (ปิงปอง) ===== */
+let pattern = clean.slice(-6).join('');
+
+if(/PBPBPB|BPBPBP/.test(pattern)){
+  if(last=='P') score.B += 3;
+  if(last=='B') score.P += 3;
+}
+
+/* ===== ANTI FAKE CHOP + DOUBLE (สูตรแก้เค้านี้) ===== */
+let last9 = clean.slice(-9).join('');
+
+// เค้า: สลับ + มีเบิ้ลแทรก (BPBBPBPBB หรือกลับด้าน)
+if(/(BPBBPBPBB|PBBPBPPBB|PBPPBPBBP|BPBBPBPPB)/.test(last9)){
+  
+  return {
+    name:'ANTI FAKE CHOP',
+    bet: last=='P' ? 'B' : 'P', // 🔥 สวนทันที
+    score: 10
+  };
+}
+
+
+/* ===== ANTI 422 / 2211 (ล็อคเลย) ===== */
+
+
+if(/(PPBB|BBPP).*(PPP|BBB).*(PP|BB)/.test(last8)){
+
+  // 🔥 ตัดสินทันที (ไม่ให้ logic อื่นแทรก)
+  return {
+    name:'ANTI 422',
+    bet: last=='P' ? 'B' : 'P',
+    score: 10
+  };
+}
+
+/* ===== ANTI DRAGON BREAK (แก้เค้านี้) ===== */
+let last11 = clean.slice(-11).join('');
+
+// เค้า: มังกร → สลับ → เบิ้ล → หัก
+if(/(BBBBPPBPPP(B|P)|PPPPBBPBBB(P|B))/.test(last11)){
+  
+  return {
+    name:'ANTI DRAGON BREAK',
+    bet: last=='P' ? 'B' : 'P', // 🔥 สวนตอนหัก
+    score: 10
+  };
+}
+
+/* ===== 4. STREAK ===== */
+let s = streak();
+
+if(s>=3){
+  score[last] += 1.5;
+}
+
+if(s>=4){
+  if(last=='P') score.B += 3;
+  if(last=='B') score.P += 3;
+}
+
+/* ===== BREAK CONFIRM ===== */
+let last2b = clean.slice(-2).join('');
+
+// ถ้ามังกรยาว แล้วเริ่มเปลี่ยน → ย้ำสวน
+if(streak() >= 4 && !last2.includes(last)){
+  if(last=='P') score.B += 4;
+  if(last=='B') score.P += 4;
+}
+
+
+ /* ===== 5. STRATEGY เดิม ===== */
+ strategies.forEach(s=>{
+   let bet = s.fn(results);
+   if(bet=='P') score.P += s.w;
+   if(bet=='B') score.B += s.w;
+ });
+
+
+ /* ===== DNA SCORE (PRO VERSION) ===== */
+if(clean.length >= 5){
+
+  let key = clean.slice(-5).join('');
+  let data = dnaMemory[key];
+
+  if(data){
+
+    let totalPattern = data.P + data.B;
+
+    // 🔥 ใช้ข้อมูลมากขึ้น
+    if(totalPattern >= 10){
+
+      // 🔥 FILTER กัน pattern หลอก (วางตรงนี้!!)
+      let confidence = Math.abs(data.P - data.B) / totalPattern;
+
+      if(confidence < 0.6) return; // ❗ สำคัญมาก
+
+      // =========================
+
+      let totalWL = data.win + data.lose;
+      let winrate = totalWL ? (data.win / totalWL) : 0;
+
+      let diff = Math.abs(data.P - data.B);
+
+      if(diff >= 2){
+
+        // 🧠 MODE 1: ยังใหม่
+        if(totalWL < 5){
+
+          let weight = (diff / totalPattern) * 3;
+
+          if(data.P > data.B){
+            score.P += weight;
+          }else{
+            score.B += weight;
+          }
+        }
+
+        // 🔥 MODE 2: ของจริง
+        else if(totalWL >= 8 && winrate >= 0.65){
+
+          let weight = winrate * 6;
+
+          if(data.P > data.B){
+            score.P += weight;
+          }else{
+            score.B += weight;
+          }
+        }
+
+      }
+    }
+  }
+}
+
+
+ /* ===== DECISION ===== */
+ let bet = score.P > score.B ? 'P' : 'B';
+
+ return {
+   name:'AI อัจฉริยะ',
+   bet:bet,
+   score: Math.max(score.P, score.B)
+ };
+}
+
+/* CONF */
+function conf(best){
+ if(!best) return 0;
+
+ let total = best.score;
+
+ // 🔥 ถ้า score มาจาก streak อย่างเดียว → ลด
+ if(streak() >= 3){
+   total *= 0.7;
+ }
+
+ return Math.min(95, total * 5);
+}
+
+
+function logRound(aiBet, real){
+
+  debugLog.push({
+    round: results.length,
+    ai: aiBet,
+    real: real,
+    correct: aiBet === real,
+    time: Date.now()
+  });
+
+  aiTrack.push(aiBet);
+  realTrack.push(real);
+
+  compareTrack.push({
+    ai: aiBet,
+    real: real,
+    match: aiBet === real
+  });
+}
+
+/* CHECK */
+function check(real){
+let lastAI = aiHistory.length ? aiHistory.at(-1).bet : null;
+logRound(lastAI, real);
+
+  // 🔥 ถ้าเสมอ → ไม่ต้องคิดอะไรเลย
+  if(real === 'T') return;
+
+  // 🔥 อัปเดต DNA ก่อน
+  updateDNAResult(real);
+
+  /* =========================
+     🔥 CHECK AI RESULT (ทุกตา)
+     ========================= */
+  if(aiHistory.length > 0){
+    let lastAI = aiHistory.at(-1);
+    if(lastAI && lastAI.bet){
+      lastAI.win = (lastAI.bet === real);
+    }
+  }
+
+  /* ========================= */
+
+  if(history.length === 0) return;
+
+  let prev = history.at(-1);
+
+  if(prev && prev.bet){
+    prev.win = (prev.bet === real);
+
+    if(prev.win){
+      loss = 0;
+    }else{
+      loss++;
+    }
+  }
+}
+
+/* HISTORY */
+function renderHistory(){
+ let el=document.getElementById("history");
+ el.innerHTML='';
+
+ history.forEach(h=>{
+  let d=document.createElement("div");
+  if(h.win===true) d.className="hcell win";
+  else if(h.win===false) d.className="hcell lose";
+  else d.className="hcell";
+  el.appendChild(d);
+ });
+}
+
+/* UPDATE */
+function update(){
+
+ bead();
+ percent();
+ learn();
+ learnDNA(); // 🔥 อย่าลืมให้ AI เรียน DNA
+
+let best = results.length>=3 ? decide() : null;
+let c = conf(best);
+
+let signal = 'SKIP';
+let aiBet = best && best.bet !== 'SKIP' ? best.bet : null;
+
+/* ===== AI LOG ===== */
+if(aiBet){
+  aiHistory.push({bet: aiBet});
+
+  console.log(" AI:", aiBet, " | REAL:", results.at(-1));
+}
+let lastLog = debugLog.at(-1);
+
+if (lastLog) {
+
+  // =========================
+  // 🧠 1. AI OUTPUT
+  // =========================
+  let aiText =
+    lastLog.ai === 'P' ? "🔵 PLAYER" :
+    lastLog.ai === 'B' ? "🔴 BANKER" :
+    "⛔ ไม่เข้าเล่น";
+
+  // =========================
+  // 📊 2. CLEAN DATA
+  // =========================
+  let clean = results.filter(x => x !== 'T');
+  let len = clean.length;
+
+  if (len < 5) return;
+
+  // =========================
+  // 📈 3. MOMENTUM ENGINE (หัวใจระบบ)
+  // =========================
+  let momentum = 0;
+
+  for (let i = 1; i <= 5; i++) {
+    if (clean[len - i] === 'P') momentum += i;
+    if (clean[len - i] === 'B') momentum -= i;
+  }
+
+  let momentumState =
+    momentum > 3 ? "แรง PLAYER" :
+    momentum < -3 ? "แรง BANKER" :
+    "สมดุล";
+
+  // =========================
+  // 📊 4. MARKET STRUCTURE SCORE
+  // =========================
+  let pCount = clean.slice(-10).filter(x => x === 'P').length;
+  let bCount = clean.slice(-10).filter(x => x === 'B').length;
+
+  let marketScore = (pCount - bCount);
+
+  let trend =
+    marketScore >= 3 ? "PLAYER ครองตลาด" :
+    marketScore <= -3 ? "BANKER ครองตลาด" :
+    "ไม่มีฝั่งชัด (Sideway)";
+
+  // =========================
+  // ⚠️ 5. RISK ENGINE (กันหลงระบบ)
+  // =========================
+  let last6 = clean.slice(-6).join('');
+
+  let risk = 0;
+
+  if (/PPPP|BBBB/.test(last6)) risk += 3;   // เทรนด์ยาว
+  if (/PBPBPB|BPBPBP/.test(last6)) risk += 4; // chop
+  if (streak() >= 4) risk += 2;
+
+  let riskState =
+    risk >= 5 ? "🔴 เสี่ยงสูง" :
+    risk >= 3 ? "🟠 เสี่ยงกลาง" :
+    "🟢 ปกติ";
+
+  // =========================
+  // 📈 6. PERFORMANCE (REAL ACCURACY)
+  // =========================
+  let total = debugLog.length;
+  let win = debugLog.filter(x => x.correct).length;
+
+  let acc = total ? win / total : 0;
+
+  // smooth accuracy (ลดหลอกตัวเอง)
+  let smoothAcc = (acc * 0.7) + (0.5 * 0.3);
+
+  let performance =
+    smoothAcc >= 0.70 ? "ระดับโปร" :
+    smoothAcc >= 0.60 ? "ดี" :
+    smoothAcc >= 0.50 ? "กลาง" :
+    "ไม่เสถียร";
+
+  // =========================
+  // 🧠 7. CONFIDENCE ENGINE (weighted จริง)
+  // =========================
+  let confidence = 50;
+
+  // momentum มีผลสูงสุด
+  confidence += momentum * 4;
+
+  // market structure
+  confidence += marketScore * 3;
+
+  // risk penalty
+  confidence -= risk * 6;
+
+  // performance weight
+  confidence += (smoothAcc * 40);
+
+  // clamp
+  confidence = Math.max(5, Math.min(95, confidence));
+
+  // =========================
+  // 💡 8. AI REASON ENGINE (ฉลาดระดับอ่านตลาด)
+  // =========================
+  let reason = [];
+
+  reason.push(`โมเมนตัม: ${momentumState} (${momentum})`);
+  reason.push(`โครงสร้างตลาด: ${trend}`);
+  reason.push(`ความเสี่ยง: ${riskState}`);
+  reason.push(`Accuracy: ${(smoothAcc * 100).toFixed(1)}%`);
+  reason.push(`ระดับระบบ: ${performance}`);
+
+  if (risk >= 5) {
+    reason.push("⚠️ ตลาดมีความผันผวนสูง ควรระวังการไล่เทรนด์");
+  }
+
+  if (momentumState.includes("สมดุล")) {
+    reason.push("⚖️ ตลาดไม่มีแรงนำชัด อาจเกิดสลับ");
+  }
+
+  if (trend.includes("ครองตลาด")) {
+    reason.push("🔥 ฝั่งใดฝั่งหนึ่งเริ่มคุมเกม");
+  }
+
+  // =========================
+  // 🧾 9. OUTPUT UI
+  // =========================
+  document.getElementById("debug").innerHTML = `
+     อุลตร้า Ai ตรวจ<br><br>
+
+    👉 AI ตัดสิน: <b>${aiText}</b><br>
+     อุลตร้า Ai มีความมั่นใจ: <b>${confidence.toFixed(1)}%</b><br><br>
+
+     ${reason.join("<br>• ")}
+  `;
+}
+
+/* =========================
+   🔥 AI HISTORY (กันซ้ำ + ไม่มั่ว)
+   ========================= */
+if(aiBet){
+
+  let last = aiHistory.at(-1);
+
+  // 🔥 กัน push ซ้ำ
+  if(!last || last.bet !== aiBet){
+    aiHistory.push({
+      bet: aiBet,
+      win: undefined // 🔥 รอผลทีหลัง
+    });
+  }
+}
+
+ /* ===== SMART PLAY (กัน WAIT เต็มระบบ) ===== */
+if(skip > 0){
+
+  skip--;
+
+}else if(best && best.bet !== 'SKIP'){ // ✅ สำคัญมาก (กัน WAIT)
+
+  if(c >= 70){
+    signal = best.bet; // 🔥 มั่นใจสูง
+  }
+  else if(c >= 50){
+    signal = best.bet; // ⚖️ กลาง ก็ยังเล่น
+  }
+  else if(c >= 40){
+    let last = results.at(-1);
+    if(last) signal = last; // 🧠 fallback
+  }
+  else{
+    signal = 'SKIP';
+  }
+
+}else{
+
+  // 🔥 กรณี best เป็น SKIP → ห้ามเล่นเด็ดขาด
+  signal = 'SKIP';
+
+}
+
+
+/* ===== 🔥 FORCE ENTRY (ต้องกัน WAIT ด้วย) ===== */
+if(
+  signal === 'SKIP' &&
+  best &&
+  best.bet !== 'SKIP' && // ✅ ห้ามลืม
+  c >= 40
+){
+  signal = best.bet;
+}
+
+ /* ===== ANTI LOSS (ฉลาดขึ้น) ===== */
+if(loss >= 3){
+  skip = 2; // 🔥 หนีแรงขึ้น
+}
+
+ /* ===== กันข้ามบ่อยเกิน ===== */
+ if(signal == 'SKIP'){
+  skipCount++;
+ }else{
+  skipCount = 0;
+ }
+
+ // 🔥 ถ้าข้ามติด 3 ครั้ง → บังคับเล่น
+if(skipCount >= 3 && best && c >= 50){
+  signal = best.bet;
+}
+
+ /* ===== SAVE HISTORY ===== */
+ if(best){
+  history.push({bet:best.bet});
+ }
+
+
+/* ===== UI ===== */
+let elAI = document.getElementById("ai");
+let anim = document.getElementById("skipAnim");
+let card = document.querySelector(".ai-card");
+
+if(signal === 'SKIP'){
+
+  elAI.innerHTML = "💃 WAITING...";
+  elAI.className = "ai-text";
+
+}else{
+
+  let aiText = '';
+  let realText = '';
+
+  // 🔵 AI คิด (ข้อความ)
+  if(aiBet === 'P') aiText = '🔵 PLAYER';
+  else if(aiBet === 'B') aiText = '🔴 BANKER';
+  else aiText = '-';
+
+  // 🎯 คำสั่งจริง (ข้อความ)
+  if(signal === 'P') realText = '🔵 PLAYER';
+  else if(signal === 'B') realText = '🔴 BANKER';
+  else realText = '-';
+
+  // 🎨 สี
+  let aiClass = '';
+  if(aiBet === 'P') aiClass = 'ai-player';
+  else if(aiBet === 'B') aiClass = 'ai-banker';
+
+  let realClass = '';
+  if(signal === 'P') realClass = 'ai-player';
+  else if(signal === 'B') realClass = 'ai-banker';
+
+  // 🧠 แสดงผล
+  elAI.innerHTML = `
+    <div style="font-size:1.2rem;color:#94a3b8;">AI คิด:</div>
+    <div class="${aiClass}" style="font-size:2rem;font-weight:bold;">
+      ${aiText}
+    </div>
+
+    <div style="margin-top:10px;font-size:1.2rem;color:#94a3b8;">
+      คำสั่งจริง:
+    </div>
+    <div class="${realClass}" style="font-size:2.4rem;font-weight:900;">
+      ${realText}
+    </div>
+  `;
+}
+
+ document.getElementById("conf").innerText =
+ c.toFixed(0)+"%";
+
+ let plays = history.filter(x=>x.win!==undefined);
+ let win = plays.filter(x=>x.win).length;
+ let pct = plays.length?(win/plays.length*100).toFixed(0):0;
+
+ document.getElementById("winrate").innerText = pct+"%";
+
+ // 🧠 AI RATE (วางตรงนี้!)
+let aiPlays = aiHistory.filter(x=>x.win!==undefined);
+let aiWin = aiPlays.filter(x=>x.win).length;
+let aiPct = aiPlays.length ? (aiWin/aiPlays.length*100).toFixed(0) : 0;
+
+document.getElementById("aiRate").innerText = aiPct+"%";
+
+
+ let last = history.at(-1);
+ if(last && last.win!==undefined){
+  document.getElementById("result").innerHTML =
+   last.win
+   ? "<span style='color:#22c55e'>✔ ถูก</span>"
+   : "<span style='color:#ef4444'>✖ ผิด</span>";
+ }
+
+ let el = document.getElementById("signal");
+
+ if(signal=='P'){
+  el.className="signal play";
+  el.innerText="▶ แทง ผู้เล่น";
+ }else if(signal=='B'){
+  el.className="signal play";
+  el.innerText="▶ แทง เจ้ามือ";
+ }else{
+  el.className="signal skip";
+  el.innerText="⛔ ข้าม";
+ }
+
+ let expDate = new Date("2026-05-12");
+let now = new Date();
+
+document.getElementById("exp").innerText =
+  expDate.toLocaleDateString("th-TH");
+
+if(now > expDate){
+  document.getElementById("ai").innerHTML = "❌ หมดอายุ";
+  document.getElementById("signal").innerText = "⛔ ใช้งานไม่ได้";
+}
+
+ renderHistory();
+}
+
+/* ===== LOGIN (API VERSION) ===== */
+async function login(){
+
+  const userInput = document.getElementById("user");
+  const passInput = document.getElementById("pass");
+
+  const loginPage = document.getElementById("loginPage");
+  const loginMsg = document.getElementById("loginMsg");
+  const app = document.querySelector(".container");
+
+  loginMsg.textContent = "กำลังตรวจสอบ...";
+
+  try{
+
+    const res = await fetch(
+      "https://morning-block-55bb.havanalanna.workers.dev/?user="
+      + encodeURIComponent(userInput.value)
+      + "&pass=" + encodeURIComponent(passInput.value)
+    );
+
+    const data = await res.json();
+
+    if(data.status === "ok"){
+
+      loginPage.style.display = "none";
+      app.style.display = "block";
+
+      update();
+
+      const user = userInput.value;
+      const pass = passInput.value;
+
+      setInterval(async ()=>{
+
+        const r = await fetch(
+          "https://morning-block-55bb.havanalanna.workers.dev/?user="
+          + encodeURIComponent(user)
+          + "&pass=" + encodeURIComponent(pass)
+        );
+
+        const j = await r.json();
+
+        if(j.status !== "ok"){
+          alert("⛔ License ถูกปิดใช้งาน");
+          location.reload();
+        }
+
+      },30000);
+
+    }else{
+      loginMsg.textContent = "User หรือ Password ไม่ถูกต้อง";
+    }
+
+  }catch(e){
+    loginMsg.textContent = "ไม่สามารถเชื่อมต่อ License Server";
+  }
+}
+
+function aiReport(){
+
+  let total = debugLog.length;
+  if(total === 0) return;
+
+  let win = debugLog.filter(x=>x.correct).length;
+  let loss = total - win;
+
+  let acc = (win / total * 100).toFixed(2);
+
+  console.log("===== AI REPORT =====");
+  console.log("Total:", total);
+  console.log("Win:", win);
+  console.log("Loss:", loss);
+  console.log("Accuracy:", acc + "%");
+
+  return { total, win, loss, acc };
+}
+
+function togglePass(){
+  const pass = document.getElementById("pass");
+  pass.type = pass.type === "password" ? "text" : "password";
+}
+
+</script>
+
+</body>
+</html>
